@@ -19,10 +19,10 @@ const App = () => {
     switch (currentScreen) {
       case "Landing":
         return <LandingPage navigateTo={navigateToScreen} />;
-      case "Landing":
-        return <LandingPage navigateTo={navigateToScreen} />;
       case "Admin":
         return <AdminPage navigateTo={navigateToScreen} />;
+      case "Home":
+        return <HomePage navigateTo={navigateToScreen} />;
       case "Login":
         return <LoginPage navigateTo={navigateToScreen} />;
       case "Register":
@@ -32,7 +32,7 @@ const App = () => {
       case "Reset":
         return <ResetPassword navigateTo={navigateToScreen} />;
       default:
-        return <HomePage navigateTo={navigateToScreen} />;
+        return <LandingPage navigateTo={navigateToScreen} />;
     }
   };
 
@@ -43,6 +43,7 @@ const App = () => {
       {currentScreen !== "Landing" &&
         currentScreen !== "Login" &&
         currentScreen !== "Register" &&
+        currentScreen !== "Forgot" &&
         currentScreen !== "Reset" && (
           <View style={styles.tabBar}>
             <TouchableOpacity
@@ -56,24 +57,6 @@ const App = () => {
               style={styles.tabButton}
             >
               <Text style={styles.tabText}>Admin</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => navigateToScreen("Login")}
-              style={styles.tabButton}
-            >
-              <Text style={styles.tabText}>Login</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => navigateToScreen("Register")}
-              style={styles.tabButton}
-            >
-              <Text style={styles.tabText}>Register</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => navigateToScreen("Reset")}
-              style={styles.tabButton}
-            >
-              <Text style={styles.tabText}>Reset</Text>
             </TouchableOpacity>
           </View>
         )}

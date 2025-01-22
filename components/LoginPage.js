@@ -7,7 +7,7 @@ import {
   ImageBackground,
   Image,
   StyleSheet,
-  Alert, 
+  Alert,
 } from "react-native";
 import backgroundImage from "../assets/girafe_enhanced.png";
 import logoImage from "../assets/Charcoal_Black_Minimalist_Typographic_Cafe_Bar_Restaurant_Logo__1_-removebg-preview 2_enhanced.png";
@@ -22,9 +22,9 @@ function LoginPage({ navigateTo }) {
       Alert.alert("Error", "Please fill in both fields.");
       return;
     }
-
+  
     setLoading(true);
-
+  
     try {
       const response = await fetch(
         "https://restaurant-reservation-application-bq2w.onrender.com/auth/login",
@@ -36,19 +36,31 @@ function LoginPage({ navigateTo }) {
           body: JSON.stringify({ email, password }),
         }
       );
-
+  
       const data = await response.json();
-
+  
       if (!response.ok) {
         Alert.alert("Error", data.error || "Login failed. Please try again.");
       } else {
         console.log("Login successful", data);
-        Alert.alert("Success", "Login successful!", [
-          {
-            text: "OK",
-            onPress: () => navigateTo("Home"), 
-          },
-        ]);
+  
+        if (data.user.role === "admin") {
+          Alert.alert("Success", "Welcome Admin!", [
+            {
+              text: "OK",
+              onPress: () => navigateTo("Admin"), 
+            },
+          ]);
+        } else if (data.user.role === "user") {
+          Alert.alert("Success", "Login successful!", [
+            {
+              text: "OK",
+              onPress: () => navigateTo("Home"), 
+            },
+          ]);
+        } else {
+          Alert.alert("Error", "Invalid role.");
+        }
       }
     } catch (err) {
       Alert.alert("Error", "An error occurred. Please try again.");
