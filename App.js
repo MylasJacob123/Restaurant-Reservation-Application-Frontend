@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import { loginSuccess } from "./redux/authSlice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import AdminPage from "./components/AdminPage";
 import HomePage from "./components/HomePage";
 import LandingPage from "./components/LandingPage";
@@ -7,16 +10,31 @@ import LoginPage from "./components/LoginPage";
 import RegisterPage from "./components/RegisterPage";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
+import UserProfile from "./components/UserProfile";
 
 const App = () => {
   const [currentScreen, setCurrentScreen] = useState("Landing");
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
 
-  const navigateToScreen = (screenName) => {
-    setCurrentScreen(screenName);
+  // Load user data from AsyncStorage on app start
+  useEffect(() => {
+    const loadUserData = async () => {
+      const savedUser = await AsyncStorage.getItem("@loggedUser");
+      if (savedUser) {
+        const userData = JSON.parse(savedUser);
+        dispatch(loginSuccess({ user: userData.user, token: userData.token }));
+      }
+    };
+    loadUserData();
+  }, [dispatch]);
+
+  const navigateToScreen = (screenName, params = {}) => {
+    setCurrentScreen({ screenName, params });
   };
 
   const renderScreen = () => {
-    switch (currentScreen) {
+    switch (currentScreen.screenName) {
       case "Landing":
         return <LandingPage navigateTo={navigateToScreen} />;
       case "Admin":
@@ -31,6 +49,8 @@ const App = () => {
         return <ForgotPassword navigateTo={navigateToScreen} />;
       case "Reset":
         return <ResetPassword navigateTo={navigateToScreen} />;
+      case "UserProfile":
+        return <UserProfile route={{ params: currentScreen.params }} navigateTo={navigateToScreen} />;
       default:
         return <LandingPage navigateTo={navigateToScreen} />;
     }
@@ -40,11 +60,11 @@ const App = () => {
     <View style={styles.container}>
       {renderScreen()}
 
-      {currentScreen !== "Landing" &&
-        currentScreen !== "Login" &&
-        currentScreen !== "Register" &&
-        currentScreen !== "Forgot" &&
-        currentScreen !== "Reset" && (
+      {currentScreen.screenName !== "Landing" &&
+        currentScreen.screenName !== "Login" &&
+        currentScreen.screenName !== "Register" &&
+        currentScreen.screenName !== "Forgot" &&
+        currentScreen.screenName !== "Reset" && (
           <View style={styles.tabBar}>
             <TouchableOpacity
               onPress={() => navigateToScreen("Home")}
@@ -58,6 +78,12 @@ const App = () => {
             >
               <Text style={styles.tabText}>Admin</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigateToScreen("UserProfile")}
+              style={styles.tabButton}
+            >
+              <Text style={styles.tabText}>UserProfile</Text>
+            </TouchableOpacity>
           </View>
         )}
     </View>
@@ -69,11 +95,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
   },
   tabBar: {
     flexDirection: "row",

@@ -9,6 +9,9 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
+import { useDispatch } from "react-redux";
+import { loginStart, loginSuccess, loginFailure } from "../redux/authSlice";
+import storageService from "../utils/storageService";
 import backgroundImage from "../assets/girafe_enhanced.png";
 import logoImage from "../assets/Charcoal_Black_Minimalist_Typographic_Cafe_Bar_Restaurant_Logo__1_-removebg-preview 2_enhanced.png";
 
@@ -16,15 +19,17 @@ function LoginPage({ navigateTo }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
 
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please fill in both fields.");
       return;
     }
-  
+
+    dispatch(loginStart());
     setLoading(true);
-  
+
     try {
       const response = await fetch(
         "https://restaurant-reservation-application-bq2w.onrender.com/auth/login",
@@ -36,26 +41,35 @@ function LoginPage({ navigateTo }) {
           body: JSON.stringify({ email, password }),
         }
       );
-  
+
       const data = await response.json();
-  
+
       if (!response.ok) {
+        dispatch(loginFailure(data.error || "Login failed."));
         Alert.alert("Error", data.error || "Login failed. Please try again.");
       } else {
-        console.log("Login successful", data);
-  
+        dispatch(loginSuccess({ user: data.user, token: data.token }));
+
+        await storageService.saveUser({
+          user: data.user,
+          token: data.token,
+        });
+
         if (data.user.role === "admin") {
           Alert.alert("Success", "Welcome Admin!", [
             {
               text: "OK",
-              onPress: () => navigateTo("Admin"), 
+              onPress: () => navigateTo("Admin"),
             },
           ]);
         } else if (data.user.role === "user") {
           Alert.alert("Success", "Login successful!", [
             {
               text: "OK",
-              onPress: () => navigateTo("Home"), 
+              onPress: () => navigateTo("UserProfile", {
+                userId: data.user._id,
+                token: data.token,
+              }),
             },
           ]);
         } else {
@@ -63,6 +77,7 @@ function LoginPage({ navigateTo }) {
         }
       }
     } catch (err) {
+      dispatch(loginFailure("An error occurred. Please try again."));
       Alert.alert("Error", "An error occurred. Please try again.");
     } finally {
       setLoading(false);
@@ -110,7 +125,7 @@ function LoginPage({ navigateTo }) {
           style={styles.registerButtonText}
           onPress={() => navigateTo("Register")}
         >
-          Don't have an account? Register
+          Don"t have an account? Register
         </Text>
       </View>
     </View>
